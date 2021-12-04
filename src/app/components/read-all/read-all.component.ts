@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { Todo } from 'src/app/models/todo';
 import { TodoService } from 'src/app/services/todo.service';
 
@@ -9,9 +10,11 @@ import { TodoService } from 'src/app/services/todo.service';
 })
 export class ReadAllComponent implements OnInit {
 
+  closed = 0;
   list: Todo[] = [];
+  listFinished: Todo[] = [];
 
-  constructor(private service: TodoService) { }
+  constructor(private service: TodoService, private router: Router) { }
 
   ngOnInit(): void {
     this.findAll();
@@ -19,8 +22,28 @@ export class ReadAllComponent implements OnInit {
 
   findAll(): void {
     this.service.findAll().subscribe((response) => {
-      this.list = response;
+      response.forEach(todo => {
+        if(todo.finalizado) {
+          this.listFinished.push(todo);
+        } else {
+          this.list.push(todo);
+        }
+      })
+      this.closed = this.listFinished.length;
     })
+  }
+
+  delete(id: any): void {
+    this.service.delete(id).subscribe((response) => {
+      if(response === null) {
+        this.service.message('Task deletada com sucesso!')
+        this.list = this.list.filter(todo => todo.id !== id);
+      }
+    })
+  }
+
+  goToFinalized(): void {
+    this.router.navigate(['finalized']);
   }
 
 }
